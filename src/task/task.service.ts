@@ -5,11 +5,10 @@ import { SupabaseService } from '../supabase/supabase.service';
 
 @Injectable()
 export class TaskService {
-  // private client: SupabaseService;
   constructor(private readonly client: SupabaseService) {}
 
   async createTask(task: CreateTaskDto) {
-    const { error } = await this.client.getClient().from('task').insert({
+    const { error } = await this.client.getClient.from('task').insert({
       task: task.task,
       completed: task.completed,
     });
@@ -20,18 +19,30 @@ export class TaskService {
     };
   }
 
-  async findAll() {
-    const { data, error } = await this.client
-      .getClient()
-      .from('task')
-      .select('*'); //sintaxe do supabase para queries
+  async findAll(limit?: number) {
+    const { error, data } = limit
+      ? await this.client.getClient.from('task').select('*').limit(limit)
+      : await this.client.getClient.from('task').select('*');
     if (error) throw error;
+    console.log(data);
+    return JSON.stringify(data);
+  }
+
+  async findOne(id?: number, search?: string) {
+    const { error, data } = search
+      ? await this.client.getClient
+          .from('task')
+          .select('*')
+          .textSearch('task', search)
+      : await this.client.getClient.from('task').select('*').eq('id', id);
+
+    if (error) throw error;
+
     return JSON.stringify(data);
   }
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {
-    const { error } = await this.client
-      .getClient()
+    const { error } = await this.client.getClient
       .from('task')
       .update({
         task: updateTaskDto.task,
@@ -45,7 +56,15 @@ export class TaskService {
     };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} task`;
+  async remove(id: number) {
+    const { error } = await this.client.getClient
+      .from('task')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return {
+      message: 'deleted',
+    };
   }
 }

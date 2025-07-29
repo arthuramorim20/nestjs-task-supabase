@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -21,8 +22,13 @@ export class TaskController {
   }
 
   @Get()
-  findAll() {
-    return this.taskService.findAll();
+  findAll(@Query('limit') count?: number) {
+    return this.taskService.findAll(count);
+  }
+
+  @Get(':id')
+  findOne(@Query('filter') @Param('id') id?: number, task?: string) {
+    return this.taskService.findOne(id, task);
   }
 
   @Patch('editTask/:id')

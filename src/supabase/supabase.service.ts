@@ -1,20 +1,21 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
-import { config } from 'dotenv';
-
-config();
 
 @Injectable()
 export class SupabaseService {
-  private client: SupabaseClient;
-  constructor() {
-    this.client = createClient(
-      process.env.SUPABASE_URL as string,
-      process.env.SUPABASE_KEY as string,
-    );
+  private readonly client: SupabaseClient;
+
+  constructor(private configService: ConfigService) {
+    const url = this.configService.get<string>('SUPABASE_URL');
+    const key = this.configService.get<string>('SUPABASE_KEY');
+    if (!url || !key) {
+      throw new Error('Supabase URL/KEY not defined, or not exist');
+    }
+    this.client = createClient(url, key);
   }
 
-  getClient(): SupabaseClient {
+  get getClient(): SupabaseClient {
     return this.client;
   }
 }
